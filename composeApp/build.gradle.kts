@@ -8,6 +8,9 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.androidxRoom)
+
 }
 
 kotlin {
@@ -28,7 +31,10 @@ kotlin {
             isStatic = true
         }
     }
-    
+    sourceSets.commonMain {
+        kotlin.srcDir("build/generated/ksp/metadata")
+    }
+
     sourceSets {
         
         androidMain.dependencies {
@@ -40,7 +46,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material)
+            implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -48,22 +54,33 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.lifecycle.runtime.compose)
 
+            implementation(compose.materialIconsExtended)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.negotiation)
-            implementation(libs.kotlin.serialization)
+            implementation(libs.ktor.client.contentnegotiation)
+            implementation(libs.ktor.serialization.json)
             implementation(libs.paging.compose.common)
 
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
     }
+}
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
+dependencies {
+    add("kspCommonMainMetadata", libs.androidx.room.compiler)
 }
 
 android {
@@ -103,3 +120,8 @@ android {
     }
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
+    if (name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
+    }
+}
