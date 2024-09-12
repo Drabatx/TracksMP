@@ -14,6 +14,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -38,7 +42,7 @@ fun DetailScreen(
 ) {
 
     val trackState = trackViewModel.trackState.collectAsState()
-
+    var nameUser by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         trackViewModel.getTrackById(trackId)
     }
@@ -48,7 +52,7 @@ fun DetailScreen(
 
         Scaffold(
             topBar = {
-                MainTopBar(title = "trackId", navController = navController, isMain = false)
+                MainTopBar(title = nameUser, navController = navController, isMain = false)
             },
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
         ) { paddingValues ->
@@ -59,6 +63,7 @@ fun DetailScreen(
                 }
                 is Result.Success -> {
                     val track = (trackState.value as Result.Success).data
+                    nameUser = track.name
                     Column(modifier = Modifier.padding(paddingValues)) {
                         AsyncImage(
                             model = track.posterUrl,
